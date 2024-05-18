@@ -433,12 +433,10 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
             JavaAdapter javaAdapter,
             KeyguardTransitionInteractor keyguardTransitionInteractor,
             ConfigurationController configurationController,
-            UiModeManager uiModeManager,
-            ConfigurationController configurationController) {
+            UiModeManager uiModeManager) {
         mContext = context;
         mIsMonetEnabled = featureFlags.isEnabled(Flags.MONET);
         mIsFidelityEnabled = featureFlags.isEnabled(Flags.COLOR_FIDELITY);
-        mConfigurationController = configurationController;
         mDeviceProvisionedController = deviceProvisionedController;
         mBroadcastDispatcher = broadcastDispatcher;
         mUserManager = userManager;
