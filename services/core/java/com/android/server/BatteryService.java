@@ -300,9 +300,6 @@ public final class BatteryService extends SystemService {
 
     private boolean mBatteryLevelLow;
 
-    private boolean mOemFastCharging;
-    private boolean mLastOemFastCharging;
-
     private long mDischargeStartTime;
     private int mDischargeStartLevel;
 
@@ -761,7 +758,6 @@ public final class BatteryService extends SystemService {
 
         shutdownIfNoPowerLocked();
         shutdownIfOverTempLocked();
-        mOemFastCharging = isOemFastCharging();
 
         if (force || mHealthInfo.chargingPolicy != mLastChargingPolicy) {
             mLastChargingPolicy = mHealthInfo.chargingPolicy;
@@ -786,8 +782,7 @@ public final class BatteryService extends SystemService {
                 || mInvalidCharger != mLastBroadcastInvalidCharger
                 || mHealthInfo.batteryCycleCount != mLastBroadcastBatteryCycleCount
                 || mHealthInfo.chargingState != mLastBroadcastChargingState
-                || mHealthInfo.batteryCapacityLevel != mLastBroadcastBatteryCapacityLevel
-                || mOemFastCharging != mLastOemFastCharging)) {
+                || mHealthInfo.batteryCapacityLevel != mLastBroadcastBatteryCapacityLevel)) {
 
             if (mPlugType != mLastBroadcastPlugType) {
                 if (mLastBroadcastPlugType == BATTERY_PLUGGED_NONE) {
@@ -1019,7 +1014,6 @@ public final class BatteryService extends SystemService {
                 mLastBroadcastBatteryCapacityLevel = mHealthInfo.batteryCapacityLevel;
                 mLastBroadcastBatteryFullCharge = mHealthInfo.batteryFullChargeUah;
                 mLastBroadcastBatteryFullChargeDesign = mHealthInfo.batteryFullChargeDesignCapacityUah;
-                mLastOemFastCharging = mOemFastCharging;
             }
         }
     }
@@ -1061,11 +1055,9 @@ public final class BatteryService extends SystemService {
         intent.putExtra(
                 BatteryManager.EXTRA_DESIGN_CAPACITY,
                 mHealthInfo.batteryFullChargeDesignCapacityUah);
-        intent.putExtra(BatteryManager.EXTRA_OEM_FAST_CHARGING, mOemFastCharging);
         if (DEBUG) {
             Slog.d(TAG, "Sending ACTION_BATTERY_CHANGED. scale:" + BATTERY_SCALE
-                    + ", info:" + mHealthInfo.toString()
-                    + ", mOemFastCharging:" + mOemFastCharging);
+                    + ", info:" + mHealthInfo.toString());
         }
 
         if (com.android.server.flags.Flags.consolidateBatteryChangeEvents()) {
@@ -1212,25 +1204,6 @@ public final class BatteryService extends SystemService {
                 : mChargingPolicyChangeListeners) {
             listener.onChargingPolicyChanged(newPolicy);
         }
-    }
-
-    private boolean isOemFastCharging() {
-        for (String val : mContext.getResources().getStringArray(
-                com.android.internal.R.array.config_oemFastChargerStatusPaths)) {
-            String[] splitVal = val.split(";", 2);
-            String path = splitVal[0];
-            String expectedValue = splitVal[1];
-            try {
-                String value = FileUtils.readTextFile(new File(path), 0, null);
-                if (expectedValue.equals(value.trim())) {
-                    return true;
-                }
-            } catch (IOException e) {
-                Slog.e(TAG, "Failed to read oem fast charger status path: "
-                    + path, e);
-            }
-        }
-        return false;
     }
 
     // TODO: Current code doesn't work since "--unplugged" flag in BSS was purposefully removed.

@@ -25,7 +25,6 @@ import static android.os.BatteryManager.EXTRA_MAX_CHARGING_CURRENT;
 import static android.os.BatteryManager.EXTRA_MAX_CHARGING_VOLTAGE;
 import static android.os.BatteryManager.EXTRA_PLUGGED;
 import static android.os.BatteryManager.EXTRA_PRESENT;
-import static android.os.BatteryManager.EXTRA_OEM_FAST_CHARGING;
 import static android.os.BatteryManager.EXTRA_STATUS;
 import static android.os.OsProtoEnums.BATTERY_PLUGGED_NONE;
 
@@ -60,7 +59,6 @@ public class BatteryStatus {
     public final int maxChargingWattage;
     public final boolean present;
     public final Optional<Boolean> incompatibleCharger;
-    public final boolean oemFastCharging;
 
     public static BatteryStatus create(Context context, boolean incompatibleCharger) {
         final Intent batteryChangedIntent = BatteryUtils.getBatteryIntent(context);
@@ -69,7 +67,7 @@ public class BatteryStatus {
     }
 
     public BatteryStatus(int status, int level, int plugged, int chargingStatus,
-            int maxChargingWattage, boolean present, boolean oemFastCharging) {
+            int maxChargingWattage, boolean present) {
         this.status = status;
         this.level = level;
         this.plugged = plugged;
@@ -77,7 +75,6 @@ public class BatteryStatus {
         this.maxChargingWattage = maxChargingWattage;
         this.present = present;
         this.incompatibleCharger = Optional.empty();
-        this.oemFastCharging = oemFastCharging;
     }
 
 
@@ -97,7 +94,6 @@ public class BatteryStatus {
                 CHARGING_POLICY_DEFAULT);
         present = batteryChangedIntent.getBooleanExtra(EXTRA_PRESENT, true);
         this.incompatibleCharger = incompatibleCharger;
-        oemFastCharging = batteryChangedIntent.getBooleanExtra(EXTRA_OEM_FAST_CHARGING, false);
 
         maxChargingWattage = calculateMaxChargingMicroWatt(batteryChangedIntent);
     }
@@ -146,7 +142,6 @@ public class BatteryStatus {
 
     /** Return current charging speed is fast, slow or normal. */
     public final int getChargingSpeed(Context context) {
-        if (oemFastCharging) return CHARGING_FAST;
         final int slowThreshold = context.getResources().getInteger(
                 R.integer.config_chargingSlowlyThreshold);
         final int fastThreshold = context.getResources().getInteger(
@@ -162,7 +157,7 @@ public class BatteryStatus {
     public String toString() {
         return "BatteryStatus{status=" + status + ",level=" + level + ",plugged=" + plugged
                 + ",chargingStatus=" + chargingStatus + ",maxChargingWattage=" + maxChargingWattage
-                + ", oemFastCharging=" + oemFastCharging + "}";
+                + "}";
     }
 
     /**
